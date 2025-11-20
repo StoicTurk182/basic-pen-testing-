@@ -1,0 +1,338 @@
+SAMPLE LOG OUTPUT - VPS Security Assessment
+═══════════════════════════════════════════════════════════════
+
+This is what you'll see when running the security audit script:
+
+╔═══════════════════════════════════════════════════════════════╗
+   VPS SECURITY ASSESSMENT TOOL
+   Target: 192.168.1.100
+   Time: Thu Nov 07 15:30:00 2024
+╚═══════════════════════════════════════════════════════════════╝
+
+[2024-11-07 15:30:00] === PHASE 1: NETWORK RECONNAISSANCE ===
+[2024-11-07 15:30:00] [+] Running initial host discovery...
+[2024-11-07 15:30:03] [✓] Host is reachable
+[2024-11-07 15:30:03] [+] Performing comprehensive port scan...
+
+Starting Nmap 7.94 ( https://nmap.org ) at 2024-11-07 15:30
+Nmap scan report for 192.168.1.100
+Host is up (0.015s latency).
+Not shown: 65530 closed tcp ports (reset)
+PORT     STATE SERVICE     VERSION
+22/tcp   open  ssh         OpenSSH 8.9p1 Ubuntu 3ubuntu0.4 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 4f:e1:ab:81:e2:3f:3d:45:2b:f2:6c:d3:3e:1f:2b:4a (ECDSA)
+|_  256 6a:2c:3e:f1:4b:5d:2e:1f:3d:4e:5b:6c:7d:8e:9f:1a (ED25519)
+80/tcp   open  http        nginx 1.18.0
+|_http-server-header: nginx/1.18.0
+|_http-title: Welcome to nginx!
+443/tcp  open  ssl/http    nginx 1.18.0
+|_http-server-header: nginx/1.18.0
+|_http-title: 403 Forbidden
+| ssl-cert: Subject: commonName=example.com
+| Subject Alternative Name: DNS:example.com, DNS:www.example.com
+| Not valid before: 2024-08-15T00:00:00
+|_Not valid after:  2024-11-15T23:59:59
+3306/tcp open  mysql       MySQL 8.0.35-0ubuntu0.22.04.1
+| mysql-info: 
+|   Protocol: 10
+|   Version: 8.0.35-0ubuntu0.22.04.1
+|   Thread ID: 12
+|   Capabilities flags: 65535
+|   Some Capabilities: SupportsTransactions, Support41Auth, FoundRows
+|_  Salt: xVFiVLt/E#~7.`|e\K_Y
+8080/tcp open  http        Node.js Express framework
+|_http-title: Site doesn't have a title.
+
+[2024-11-07 15:35:45] [+] Running aggressive scan with OS detection...
+[2024-11-07 15:38:12] [✓] OS detection complete
+
+OS details: Linux 5.15 - 6.1
+Network Distance: 1 hop
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+[2024-11-07 15:38:15] === PHASE 2: VULNERABILITY SCANNING ===
+[2024-11-07 15:38:15] [+] Running Nmap vulnerability scripts...
+[2024-11-07 15:42:30] [!] Found potential vulnerability: CVE-2023-38545
+[2024-11-07 15:42:30] [!] OpenSSH version may be vulnerable to timing attacks
+
+PORT     STATE SERVICE REASON
+22/tcp   open  ssh     syn-ack
+| vulners: 
+|   CVE-2023-38408: OpenSSH before 9.3p2
+|     https://vulners.com/cve/CVE-2023-38408
+|   CVE-2023-38545: OpenSSH < 9.5p1 
+|_    https://vulners.com/cve/CVE-2023-38545
+
+[2024-11-07 15:43:00] === PHASE 3: SSH SECURITY ANALYSIS ===
+[2024-11-07 15:43:00] [+] SSH port is open, analyzing...
+[2024-11-07 15:43:01] [+] SSH banner grabbing...
+SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
+
+[2024-11-07 15:43:05] [+] SSH configuration analysis...
+| ssh2-enum-algos: 
+|   kex_algorithms: (11)
+|       curve25519-sha256
+|       ecdh-sha2-nistp256
+|       diffie-hellman-group-exchange-sha256
+|   server_host_key_algorithms: (5)
+|       rsa-sha2-512
+|       rsa-sha2-256
+|       ecdsa-sha2-nistp256
+|   encryption_algorithms: (7)
+|       chacha20-poly1305@openssh.com
+|       aes256-gcm@openssh.com
+|       aes128-gcm@openssh.com
+|       aes256-ctr
+
+[2024-11-07 15:43:20] [!] WARNING: SSH allows password authentication
+[2024-11-07 15:43:20] [!] RECOMMENDATION: Disable password auth, use keys only
+
+[2024-11-07 15:43:25] === PHASE 4: WEB SERVER ANALYSIS ===
+[2024-11-07 15:43:25] [+] http service detected on port 80
+[2024-11-07 15:43:25] [+] Grabbing HTTP headers...
+
+HTTP/1.1 200 OK
+Server: nginx/1.18.0
+Date: Thu, 07 Nov 2024 15:43:25 GMT
+Content-Type: text/html
+Connection: keep-alive
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+
+[2024-11-07 15:43:26] [✓] Security headers present: X-Frame-Options, X-Content-Type-Options
+[2024-11-07 15:43:26] [!] WARNING: Missing header: Strict-Transport-Security (HSTS)
+[2024-11-07 15:43:26] [!] WARNING: Missing header: Content-Security-Policy
+
+[2024-11-07 15:43:30] [+] Running Nikto web scanner on port 80...
+- Nikto v2.5.0
+---------------------------------------------------------------------------
++ Target IP:          192.168.1.100
++ Target Hostname:    192.168.1.100
++ Target Port:        80
++ Start Time:         2024-11-07 15:43:30
+---------------------------------------------------------------------------
+
++ Server: nginx/1.18.0
++ /: The anti-clickjacking X-Frame-Options header is not present.
++ /: The X-Content-Type-Options header is not set.
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ nginx/1.18.0 appears to be outdated (current is at least 1.23.0)
++ /admin/: Directory indexing found.
++ /admin/: This might be interesting.
++ /config.php: PHP configuration file may contain database credentials.
+
+[2024-11-07 15:48:15] [!] CRITICAL: Admin directory exposed at /admin/
+[2024-11-07 15:48:15] [!] WARNING: Nginx version is outdated
+
+[2024-11-07 15:48:20] [+] Running directory enumeration on port 80...
+===============================================================
+Gobuster v3.6
+===============================================================
+[+] Url:                     http://192.168.1.100
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Status codes:            200,204,301,302,307,401,403
+===============================================================
+
+/admin                (Status: 301) [Size: 178] [--> /admin/]
+/assets               (Status: 301) [Size: 178] [--> /assets/]
+/backup               (Status: 301) [Size: 178] [--> /backup/]
+/config               (Status: 403) [Size: 153]
+/uploads              (Status: 301) [Size: 178] [--> /uploads/]
+
+[2024-11-07 15:52:00] [!] CRITICAL: Backup directory accessible at /backup/
+[2024-11-07 15:52:00] [!] HIGH: Uploads directory accessible at /uploads/
+
+[2024-11-07 15:52:05] === PHASE 5: SSL/TLS SECURITY ANALYSIS ===
+[2024-11-07 15:52:05] [+] Checking SSL/TLS on port 443...
+[2024-11-07 15:52:10] [+] Running sslscan...
+
+Testing SSL server 192.168.1.100 on port 443
+
+  SSL/TLS Protocols:
+    TLSv1.2   enabled
+    TLSv1.3   enabled
+
+  TLS Fallback SCSV:
+    Server supports TLS Fallback SCSV
+
+  TLS renegotiation:
+    Secure session renegotiation supported
+
+  TLS Compression:
+    Compression disabled
+
+  Heartbleed:
+    TLS 1.2 not vulnerable to heartbleed
+    TLS 1.3 not vulnerable to heartbleed
+
+  Supported Server Cipher(s):
+    Preferred TLSv1.3  128 bits  TLS_AES_128_GCM_SHA256
+    Accepted  TLSv1.3  256 bits  TLS_AES_256_GCM_SHA384
+    Accepted  TLSv1.2  256 bits  ECDHE-RSA-AES256-GCM-SHA384
+
+  SSL Certificate:
+    Certificate: EXPIRED
+    Signature Algorithm: sha256WithRSAEncryption
+    RSA Key Strength:    2048
+    Subject:  example.com
+    Issuer:   Let's Encrypt
+    Not valid before: Aug 15 00:00:00 2024 GMT
+    Not valid after:  Nov 15 23:59:59 2024 GMT (EXPIRED)
+
+[2024-11-07 15:52:45] [!] CRITICAL: SSL Certificate has EXPIRED!
+[2024-11-07 15:52:45] [✓] Strong cipher suites configured
+[2024-11-07 15:52:45] [✓] TLSv1.3 enabled
+[2024-11-07 15:52:45] [!] WARNING: TLSv1.0 and TLSv1.1 should be disabled
+
+[2024-11-07 15:52:50] === PHASE 6: DATABASE SECURITY ===
+[2024-11-07 15:52:50] [+] MySQL/MariaDB detected on port 3306
+[2024-11-07 15:52:55] [!] CRITICAL: MySQL exposed to internet!
+[2024-11-07 15:52:55] [!] RECOMMENDATION: Bind MySQL to localhost only
+
+PORT     STATE SERVICE REASON
+3306/tcp open  mysql   syn-ack
+| mysql-info: 
+|   Protocol: 10
+|   Version: 8.0.35-0ubuntu0.22.04.1
+|   Thread ID: 14
+|_  Salt: <G[)g*\xYqm!Z%VoA:m:
+
+[2024-11-07 15:53:00] [+] Testing for anonymous access...
+[2024-11-07 15:53:02] [✓] Anonymous access denied
+
+[2024-11-07 15:53:05] === PHASE 7: DNS ENUMERATION ===
+[2024-11-07 15:53:05] [+] DNS resolution...
+192.168.1.100 domain name pointer example.com.
+
+[2024-11-07 15:53:10] === PHASE 8: ADDITIONAL SERVICE CHECKS ===
+[2024-11-07 15:53:10] [+] Checking for FTP service...
+[2024-11-07 15:53:12] [✓] FTP not detected
+
+[2024-11-07 15:53:15] === PHASE 9: MALWARE & BACKDOOR DETECTION ===
+[2024-11-07 15:53:15] [+] Scanning for common backdoor ports...
+[2024-11-07 15:53:20] [✓] No backdoor ports detected
+
+[2024-11-07 15:53:25] === PHASE 10: GENERATING SUMMARY REPORT ===
+[2024-11-07 15:53:25] [+] Analyzing findings...
+[2024-11-07 15:53:30] [+] Creating summary report...
+
+=====================================
+VPS SECURITY ASSESSMENT SUMMARY
+=====================================
+Target: 192.168.1.100
+Scan Date: Thu Nov 07 15:53:30 2024
+Scan Duration: 1405s
+
+=== OPEN PORTS ===
+22/tcp   open  ssh
+80/tcp   open  http
+443/tcp  open  ssl/http
+3306/tcp open  mysql
+8080/tcp open  http-proxy
+
+=== DETECTED SERVICES ===
+OpenSSH 8.9p1
+nginx 1.18.0
+MySQL 8.0.35
+Node.js Express
+
+=== CRITICAL FINDINGS ===
+[CRITICAL] SSL Certificate EXPIRED (expired 23 days ago)
+[CRITICAL] MySQL database exposed to internet on port 3306
+[CRITICAL] Admin directory accessible at /admin/
+[CRITICAL] Backup files accessible at /backup/
+[HIGH] OpenSSH version vulnerable to CVE-2023-38545
+[HIGH] Nginx version outdated (1.18.0 vs 1.23.0)
+[HIGH] Upload directory publicly accessible
+[HIGH] SSH allows password authentication
+[MEDIUM] Missing HSTS header
+[MEDIUM] Missing CSP header
+[MEDIUM] TLSv1.0/1.1 still enabled
+
+=== RECOMMENDATIONS ===
+
+1. Close unnecessary ports and services
+   - Bind MySQL to localhost: bind-address = 127.0.0.1
+   - Consider moving SSH to non-standard port
+   
+2. Update all software to latest versions
+   - Update OpenSSH: sudo apt update && sudo apt install openssh-server
+   - Update Nginx: sudo apt install nginx
+   
+3. Implement strong authentication (SSH keys only)
+   - Disable password auth: PasswordAuthentication no
+   - Require public key: PubkeyAuthentication yes
+   
+4. Enable and configure firewall (ufw/iptables)
+   - sudo ufw allow 22/tcp
+   - sudo ufw allow 80/tcp
+   - sudo ufw allow 443/tcp
+   - sudo ufw deny 3306/tcp
+   - sudo ufw enable
+   
+5. Install fail2ban or similar IDS/IPS
+   - sudo apt install fail2ban
+   
+6. Use strong SSL/TLS configurations
+   - Renew SSL certificate immediately: sudo certbot renew
+   - Disable TLSv1.0 and TLSv1.1
+   - Enable HSTS: add_header Strict-Transport-Security "max-age=31536000"
+   
+7. Regular security updates and monitoring
+   - Enable unattended-upgrades
+   - Set up log monitoring
+   
+8. Implement log monitoring and alerting
+   - Configure logwatch or similar
+   
+9. Use non-standard ports where possible
+   - Change SSH port in /etc/ssh/sshd_config
+   
+10. Regular backup procedures
+    - Automate backups with encryption
+    - Store off-site
+
+[2024-11-07 15:53:35] === ASSESSMENT COMPLETE ===
+[2024-11-07 15:53:35] Results saved to: security_audit_192.168.1.100_20241107_153000
+[2024-11-07 15:53:35] Summary report: security_audit_192.168.1.100_20241107_153000/00_SUMMARY_REPORT.txt
+[2024-11-07 15:53:35] Full log: security_audit_192.168.1.100_20241107_153000/audit_log.txt
+
+╔═══════════════════════════════════════════════════════════════╗
+   SCAN COMPLETED SUCCESSFULLY
+   Total time: 1405s (23 minutes)
+╚═══════════════════════════════════════════════════════════════╝
+
+[2024-11-07 15:53:35] [+] Quick reference guide created
+
+═══════════════════════════════════════════════════════════════
+
+NEXT STEPS:
+
+1. Review the summary report:
+   cat security_audit_192.168.1.100_20241107_153000/00_SUMMARY_REPORT.txt
+
+2. Analyze results for detailed HTML report:
+   ./analyze_results.sh security_audit_192.168.1.100_20241107_153000
+
+3. Address CRITICAL findings immediately:
+   - Renew SSL certificate
+   - Restrict MySQL access
+   - Secure admin directories
+   - Update vulnerable software
+
+4. View all findings:
+   grep -riE "CRITICAL|HIGH" security_audit_192.168.1.100_20241107_153000/
+
+═══════════════════════════════════════════════════════════════
+
+STATISTICS:
+- Total files created: 32
+- Log entries: 487
+- Critical findings: 4
+- High findings: 4
+- Medium findings: 3
+- Services scanned: 5
+- Vulnerabilities detected: 8
+
+═══════════════════════════════════════════════════════════════

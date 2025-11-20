@@ -1,0 +1,483 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║          VPS SECURITY HARDENING CHECKLIST                    ║
+║          Use after running security assessment               ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+IMMEDIATE ACTIONS (Critical - Do Today)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Network Security:
+□ Close all unnecessary open ports
+  Commands:
+  sudo ufw status
+  sudo ufw deny PORT_NUMBER
+  
+□ Verify only essential services are exposed
+  Check open ports from scan results
+  
+□ Configure firewall with default-deny policy
+  sudo ufw default deny incoming
+  sudo ufw default allow outgoing
+  sudo ufw enable
+
+SSH Hardening:
+□ Disable root login
+  Edit: /etc/ssh/sshd_config
+  Set: PermitRootLogin no
+  
+□ Disable password authentication
+  Edit: /etc/ssh/sshd_config
+  Set: PasswordAuthentication no
+  Set: PubkeyAuthentication yes
+  
+□ Change SSH port to non-standard
+  Edit: /etc/ssh/sshd_config
+  Set: Port 2222 (or your choice)
+  sudo ufw allow 2222/tcp
+  
+□ Restart SSH service
+  sudo systemctl restart sshd
+
+Software Updates:
+□ Update all packages immediately
+  sudo apt update
+  sudo apt upgrade -y
+  sudo apt dist-upgrade -y
+  sudo apt autoremove -y
+  
+□ Check for specific security updates
+  sudo apt list --upgradable
+  
+□ Update vulnerable services identified in scan
+  Review scan results for specific versions
+
+
+SHORT-TERM ACTIONS (Within 1 Week)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Intrusion Prevention:
+□ Install and configure fail2ban
+  sudo apt install -y fail2ban
+  sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+  Edit: /etc/fail2ban/jail.local
+  sudo systemctl enable fail2ban
+  sudo systemctl start fail2ban
+  
+□ Configure fail2ban for SSH
+  [sshd]
+  enabled = true
+  maxretry = 3
+  bantime = 3600
+
+SSL/TLS Security:
+□ Renew expired certificates
+  sudo certbot renew
+  
+□ Disable weak protocols (SSLv3, TLSv1.0, TLSv1.1)
+  Nginx: /etc/nginx/nginx.conf
+  Add: ssl_protocols TLSv1.2 TLSv1.3;
+  
+□ Configure strong cipher suites
+  Nginx example:
+  ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256';
+  ssl_prefer_server_ciphers on;
+  
+□ Enable HSTS
+  Nginx: add_header Strict-Transport-Security "max-age=31536000" always;
+  
+□ Test SSL configuration
+  https://www.ssllabs.com/ssltest/
+
+Web Server Security:
+□ Remove or protect admin directories
+  Move /admin/ behind authentication
+  Or restrict by IP
+  
+□ Remove backup files from web root
+  sudo find /var/www -name "*.bak" -delete
+  sudo find /var/www -name "*~" -delete
+  
+□ Disable directory listing
+  Nginx: autoindex off;
+  Apache: Options -Indexes
+  
+□ Add security headers
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Content-Security-Policy: default-src 'self'
+  Referrer-Policy: no-referrer-when-downgrade
+  
+□ Update web server to latest version
+  sudo apt install nginx  # or apache2
+
+Database Security:
+□ Bind database to localhost only
+  Edit MySQL: /etc/mysql/mysql.conf.d/mysqld.cnf
+  Set: bind-address = 127.0.0.1
+  
+□ Remove anonymous database users
+  MySQL: DELETE FROM mysql.user WHERE User='';
+  
+□ Change default database passwords
+  Use strong passwords (16+ characters)
+  
+□ Restrict database user privileges
+  Grant only necessary permissions
+  
+□ Enable database logging
+  log_error = /var/log/mysql/error.log
+
+System Monitoring:
+□ Enable system logging
+  sudo apt install -y rsyslog
+  sudo systemctl enable rsyslog
+  
+□ Install log monitoring tool
+  sudo apt install -y logwatch
+  Or: sudo apt install -y logcheck
+  
+□ Configure email alerts for security events
+  
+□ Set up disk space monitoring
+  df -h (check regularly)
+
+
+MEDIUM-TERM ACTIONS (Within 1 Month)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Automated Security:
+□ Enable automatic security updates
+  sudo apt install -y unattended-upgrades
+  sudo dpkg-reconfigure --priority=low unattended-upgrades
+  
+□ Configure update notifications
+  Edit: /etc/apt/apt.conf.d/50unattended-upgrades
+
+Backup Strategy:
+□ Set up automated backups
+  Consider: rsync, duplicity, or backup service
+  
+□ Test backup restoration process
+  
+□ Implement off-site backup storage
+  
+□ Encrypt backup files
+  
+□ Set backup retention policy
+  Daily: 7 days
+  Weekly: 4 weeks
+  Monthly: 12 months
+
+User Management:
+□ Audit user accounts
+  cat /etc/passwd
+  Remove unnecessary users
+  
+□ Implement password policy
+  Edit: /etc/login.defs
+  PASS_MAX_DAYS 90
+  PASS_MIN_DAYS 1
+  PASS_WARN_AGE 7
+  
+□ Use sudo instead of root login
+  
+□ Enable account lockout policy
+  Edit: /etc/pam.d/common-auth
+
+Application Security:
+□ Update all web applications
+  WordPress, PHP, etc.
+  
+□ Remove unused applications
+  sudo apt remove PACKAGE
+  
+□ Implement Web Application Firewall (WAF)
+  Consider: ModSecurity
+  
+□ Scan for malware regularly
+  sudo apt install -y clamav
+  sudo freshclam
+  sudo clamscan -r /
+
+Network Configuration:
+□ Disable IPv6 if not needed
+  Edit: /etc/sysctl.conf
+  net.ipv6.conf.all.disable_ipv6 = 1
+  
+□ Enable SYN cookies
+  Edit: /etc/sysctl.conf
+  net.ipv4.tcp_syncookies = 1
+  
+□ Disable IP forwarding if not router
+  net.ipv4.ip_forward = 0
+  
+□ Enable reverse path filtering
+  net.ipv4.conf.all.rp_filter = 1
+
+
+ONGOING MAINTENANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Daily Tasks:
+□ Monitor system logs for suspicious activity
+  sudo tail -f /var/log/auth.log
+  sudo tail -f /var/log/syslog
+  
+□ Check fail2ban status
+  sudo fail2ban-client status
+
+Weekly Tasks:
+□ Review security updates
+  sudo apt update
+  sudo apt list --upgradable
+  
+□ Check disk usage
+  df -h
+  
+□ Review backup logs
+  
+□ Scan for vulnerabilities
+  Run your security audit script
+
+Monthly Tasks:
+□ Full security audit
+  ./vps_security_audit.sh YOUR_IP
+  
+□ Review and rotate logs
+  
+□ Test backup restoration
+  
+□ Update documentation
+  
+□ Review user accounts and permissions
+  
+□ Check SSL certificate expiration
+  echo | openssl s_client -connect YOUR_IP:443 2>/dev/null | openssl x509 -noout -dates
+
+Quarterly Tasks:
+□ Comprehensive security review
+  
+□ Update security policies
+  
+□ Review and update firewall rules
+  
+□ Penetration testing
+  
+□ Disaster recovery drill
+
+
+VERIFICATION COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After implementing changes, verify:
+
+Check Firewall Status:
+sudo ufw status verbose
+
+Check SSH Configuration:
+sudo sshd -T | grep -E 'passwordauth|permitroot|port'
+
+Check Open Ports:
+sudo netstat -tulpn
+# Or: sudo ss -tulpn
+
+Check Fail2ban Status:
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+
+Check for Updates:
+sudo apt update && sudo apt list --upgradable
+
+Check SSL Certificate:
+echo | openssl s_client -connect YOUR_IP:443 2>/dev/null | openssl x509 -noout -dates
+
+Check MySQL Binding:
+sudo netstat -an | grep 3306
+
+Check Running Services:
+sudo systemctl list-units --type=service --state=running
+
+Check System Logs:
+sudo journalctl -p err -b
+
+View Failed Login Attempts:
+sudo grep "Failed password" /var/log/auth.log | tail -20
+
+Check Disk Space:
+df -h
+
+Check Memory Usage:
+free -h
+
+
+PRIORITY MATRIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL (Fix Immediately):
+• Expired SSL certificates
+• Exposed databases to internet
+• No firewall or open "any" rules
+• Root login enabled with passwords
+• Known critical CVEs
+
+HIGH (Fix Within 48 Hours):
+• Outdated software with security patches
+• Weak SSH configuration
+• Missing security headers
+• Exposed admin panels
+• Weak SSL/TLS ciphers
+
+MEDIUM (Fix Within 1 Week):
+• Non-security updates
+• Missing monitoring
+• Backup not configured
+• Directory listing enabled
+• Missing HSTS
+
+LOW (Fix During Maintenance):
+• Version disclosure
+• Minor configuration improvements
+• Documentation updates
+• Non-critical warnings
+
+
+SECURITY SCORING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Rate your security posture after implementing fixes:
+
+□ Firewall configured and active (10 points)
+□ SSH hardened (keys only, non-standard port) (15 points)
+□ All software up-to-date (10 points)
+□ Fail2ban or IPS installed (10 points)
+□ Strong SSL/TLS (A+ rating) (10 points)
+□ Databases not exposed (10 points)
+□ Security headers implemented (5 points)
+□ Automated backups configured (10 points)
+□ Log monitoring active (5 points)
+□ No critical vulnerabilities (15 points)
+
+Score:
+90-100: Excellent security posture ✅
+75-89:  Good, minor improvements needed ✓
+60-74:  Acceptable, address medium items ⚠
+45-59:  Poor, immediate action required ⚠⚠
+0-44:   Critical, multiple security gaps ❌
+
+
+EMERGENCY RESPONSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If you detect active exploitation:
+
+1. ISOLATE
+   □ Disconnect from network if possible
+   □ Block suspicious IPs immediately
+   sudo ufw deny from ATTACKER_IP
+
+2. DOCUMENT
+   □ Capture logs before they're modified
+   sudo journalctl > /tmp/incident-logs.txt
+   sudo cp /var/log/auth.log /tmp/
+   
+   □ Note what you observed
+   □ Take screenshots
+
+3. ANALYZE
+   □ Check for unauthorized users
+   cat /etc/passwd
+   
+   □ Check for unusual processes
+   ps auxf
+   
+   □ Check for suspicious cron jobs
+   sudo cat /etc/crontab
+   crontab -l
+   
+   □ Check network connections
+   sudo netstat -antup
+
+4. CONTAIN
+   □ Disable compromised accounts
+   □ Change all passwords
+   □ Review and restrict firewall rules
+
+5. ERADICATE
+   □ Remove malware/backdoors
+   □ Patch vulnerabilities
+   □ Update all software
+
+6. RECOVER
+   □ Restore from clean backup if necessary
+   □ Verify system integrity
+
+7. POST-INCIDENT
+   □ Review what happened
+   □ Update security procedures
+   □ Implement additional controls
+
+
+USEFUL COMMANDS REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+View Active Connections:
+sudo netstat -antup | grep ESTABLISHED
+
+Find Large Files:
+sudo find / -type f -size +100M -exec ls -lh {} \;
+
+Check Last Logins:
+last -a | head -20
+
+View Current Users:
+w
+
+Check System Uptime:
+uptime
+
+View Kernel Version:
+uname -a
+
+Check Failed Login Attempts:
+sudo grep "Failed password" /var/log/auth.log
+
+View Cron Jobs:
+sudo crontab -l
+ls -la /etc/cron*
+
+Find SUID Files:
+sudo find / -perm -4000 -type f 2>/dev/null
+
+Check Listening Ports:
+sudo ss -tulpn | grep LISTEN
+
+
+NOTES SECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Scan Date: _________________
+
+Critical Findings:
+_____________________________________________________________
+_____________________________________________________________
+_____________________________________________________________
+
+Actions Taken:
+_____________________________________________________________
+_____________________________________________________________
+_____________________________________________________________
+
+Next Scan Date: _________________
+
+Additional Notes:
+_____________________________________________________________
+_____________________________________________________________
+_____________________________________________________________
+
+═══════════════════════════════════════════════════════════════
+
+Remember: Security is a process, not a destination!
+
+═══════════════════════════════════════════════════════════════
