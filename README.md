@@ -3,13 +3,13 @@
 
 ---
 
-## 📋 Overview
+##  Overview
 
 This toolkit provides a comprehensive security assessment suite for analyzing your own VPS infrastructure. It includes automated scanning, vulnerability detection, authentication testing, and detailed reporting with full logging capabilities.
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Basic Usage
 ```bash
@@ -35,7 +35,7 @@ This toolkit provides a comprehensive security assessment suite for analyzing yo
 
 ---
 
-## 📦 Prerequisites
+##  Prerequisites
 
 ### Required Tools (Install on Kali Linux)
 ```bash
@@ -60,7 +60,7 @@ which nmap nikto gobuster sslscan hydra curl
 
 ---
 
-## 📁 Toolkit Components
+##  Toolkit Components
 
 ### 1. vps_security_audit.sh
 **Main comprehensive security scanner**
@@ -130,7 +130,7 @@ which nmap nikto gobuster sslscan hydra curl
 
 ---
 
-## 🎯 Scan Phases Explained
+## Scan Phases Explained
 
 ### Phase 1: Network Reconnaissance
 - Host discovery (ICMP ping)
@@ -234,7 +234,7 @@ which nmap nikto gobuster sslscan hydra curl
 
 ---
 
-## 📊 Understanding the Output
+## Understanding the Output
 
 ### Directory Structure
 ```
@@ -275,7 +275,7 @@ Example:
 
 ---
 
-## 🔍 Quick Analysis Commands
+## Quick Analysis Commands
 
 ### View All Critical Issues
 ```bash
@@ -327,7 +327,7 @@ cat security_audit_*/14_nikto_*.txt | grep -E "OSVDB|CVE"
 
 ---
 
-## 🛠️ Customization
+## Customization
 
 ### Modify Scan Intensity
 Edit `vps_security_audit.sh`:
@@ -368,7 +368,7 @@ hydra -t 2 -w 60 "$TARGET" ssh
 
 ---
 
-## 📈 Interpreting Results
+## Interpreting Results
 
 ### Priority Actions Based on Findings
 
@@ -398,7 +398,7 @@ hydra -t 2 -w 60 "$TARGET" ssh
 
 ---
 
-## 🎓 Advanced Usage
+## Advanced Usage
 
 ### Continuous Monitoring
 Set up automated weekly scans:
@@ -435,7 +435,7 @@ db_import security_audit_*/02_full_port_scan.xml
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "Permission denied"
 ```bash
@@ -473,7 +473,7 @@ nmap -Pn --host-timeout 30m YOUR_VPS_IP
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### Learning Resources
 - OWASP Testing Guide: https://owasp.org/www-project-web-security-testing-guide/
@@ -493,7 +493,7 @@ nmap -Pn --host-timeout 30m YOUR_VPS_IP
 
 ---
 
-## 🔐 Post-Scan Hardening
+## Post-Scan Hardening
 
 After running scans, use these commands to harden your VPS:
 
@@ -536,7 +536,7 @@ sudo apt autoremove -y
 
 ---
 
-## 📝 Report Templates
+## Report Templates
 
 ### Executive Summary Template
 ```
@@ -559,7 +559,7 @@ Risk Level: [Low/Medium/High/Critical]
 
 ---
 
-## 🤝 Support and Contributing
+## Support and Contributing
 
 ### Getting Help
 - Review the audit_log.txt for detailed error messages
@@ -576,7 +576,7 @@ Customize scripts for your specific needs:
 
 ---
 
-## ⏱️ Scan Duration Estimates
+## Scan Duration Estimates
 
 | Scan Type | Duration | Thoroughness |
 |-----------|----------|--------------|
@@ -587,7 +587,7 @@ Customize scripts for your specific needs:
 
 ---
 
-## 🎯 Success Metrics
+## Success Metrics
 
 After implementing recommendations, re-run scans to verify:
 - [ ] Reduced number of open ports
@@ -600,7 +600,7 @@ After implementing recommendations, re-run scans to verify:
 
 ---
 
-## 📞 Emergency Response
+## Emergency Response
 
 If you discover active exploitation:
 1. **Isolate** the system immediately
@@ -614,4 +614,4 @@ If you discover active exploitation:
 
 **Remember:** Security is a continuous process, not a one-time task. Regular scanning and updates are essential for maintaining a secure VPS!
 
-**Stay Safe! 🛡️**
+**Stay Safe! **
